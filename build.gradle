@@ -1,0 +1,146 @@
+plugins {
+    id "idea"
+    id "java"
+    id "org.springframework.boot" version "2.2.1.RELEASE"
+}
+
+group = 'ru.ruslan'
+version = '1.0.0-SNAPSHOT'
+
+apply plugin: "java"
+apply plugin: 'idea'
+apply plugin: "maven-publish"
+
+ext {
+    //Project
+
+    //Spring
+    springVersion = '5.1.8.RELEASE'
+    springBootVersion = '2.2.1.RELEASE'
+
+    //Common
+    jettyVersion = '9.4.19.v20190610'
+    jacksonVersion = '2.9.9'
+    lombokVersion = '1.18.8'
+    feignVersion = '11.0'
+
+    //Logging
+    slf4jVersion = '1.7.26'
+    logbackVersion = '1.2.3'
+
+    //Testing
+    junitVersion = '4.12'
+    mockitoVersion = '2.15.0'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+}
+
+configurations {
+    implementation.exclude group: 'javax.servlet.jsp'
+    implementation.exclude group: 'org.apache.tomcat'
+    implementation.exclude module: 'tomcat-embed-el'
+    implementation.exclude module: 'spring-boot-starter-tomcat'
+    implementation.exclude module: 'commons-logging'
+}
+
+dependencies {
+    implementation platform('org.springframework:spring-framework-bom:' + springVersion)
+    implementation platform('org.springframework.boot:spring-boot-dependencies:' + springBootVersion)
+    implementation platform('org.springframework.data:spring-data-releasetrain:Lovelace-SR3')
+    implementation platform('com.fasterxml.jackson:jackson-bom:' + jacksonVersion)
+
+    // Project
+
+    // Spring
+    implementation "org.springframework:spring-beans"
+    implementation "org.springframework:spring-context"
+    implementation "org.springframework:spring-context-support"
+    implementation "org.springframework:spring-core"
+    implementation "org.springframework:spring-web"
+    implementation "org.springframework:spring-webmvc"
+    implementation "org.springframework:spring-orm"
+
+    // Spring boot
+    implementation "org.springframework.boot:spring-boot-starter"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
+    implementation "org.springframework.boot:spring-boot-starter-jetty"
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+
+
+    // Jackson
+    implementation 'com.fasterxml.jackson.core:jackson-core'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations'
+    implementation 'com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider'
+
+    // Jetty
+    implementation "org.eclipse.jetty:jetty-server:$jettyVersion"
+    implementation "org.eclipse.jetty:jetty-util:$jettyVersion"
+
+    // Common
+    implementation "org.apache.commons:commons-collections4:4.4"
+    implementation "org.apache.commons:commons-lang3:3.9"
+    implementation "commons-io:commons-io:2.6"
+    implementation "io.github.openfeign:feign-httpclient:11.0"
+    implementation "io.github.openfeign:feign-jackson:11.0"
+
+
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    // Logging
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+    implementation "org.slf4j:log4j-over-slf4j:$slf4jVersion"
+    implementation "ch.qos.logback:logback-core:$logbackVersion"
+    implementation "ch.qos.logback:logback-classic:$logbackVersion"
+
+    // Testing
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.boot:spring-boot-test-autoconfigure"
+    testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+}
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test) {
+    systemProperty 'file.encoding', 'UTF-8'
+}
+
+sourceSets {
+    main.java {
+        srcDirs = ['src/main/java']
+    }
+}
+
+test {
+    onlyIf { !Boolean.getBoolean('skip.tests') }
+    reports {
+        junitXml.enabled = true
+        html.enabled = true
+    }
+}
+springBoot {
+    buildInfo()
+}
+bootJar {
+    mainClassName = 'ru.ruslan.Application'
+}
+bootRun {
+    if (System.properties.containsKey('spring.profiles.active')) {
+        systemProperty "spring.profiles.active", System.properties['spring.profiles.active']
+    }
+}
